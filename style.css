@@ -181,8 +181,11 @@ body.spin-page {
 }
 
 @media (max-width: 640px) {
+  .stage {
+    padding-top: calc(clamp(20px, 4vh, 44px) + 4vh);
+  }
   .hero__logo {
-    width: clamp(380px, 120vw, 640px);
+    width: clamp(342px, 108vw, 576px);
   }
 }
 
@@ -774,7 +777,10 @@ body.spin-page {
 .field__prefix {
   position: absolute;
   left: 16px;
-  top: 50%;
+  /* Input padding is asymmetric (27px top / 11px bottom) to leave room for
+     the floated label, so the text's true vertical centre sits 8px below the
+     box's geometric 50% — match that instead of splitting the box in half. */
+  top: calc(50% + 8px);
   transform: translateY(-50%);
   font-size: 1rem;
   font-weight: 700;
@@ -868,7 +874,7 @@ body.spin-page {
 
 @media (max-height: 700px) {
   .hero__logo {
-    width: clamp(320px, 90vw, 480px);
+    width: clamp(288px, 81vw, 432px);
   }
   .hero__sub {
     display: none;
