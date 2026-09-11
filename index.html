@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#FFC72C">
+    <title>Spin &amp; Win — Country Rolls</title>
+    <meta name="description" content="Spin the Country Rolls wheel. Four prizes, every spin wins. Limited to 50 winners.">
+    <meta property="og:title" content="Spin &amp; Win — Country Rolls">
+    <meta property="og:description" content="Four prizes. Every spin wins. Limited to 50 winners.">
+    <meta property="og:image" content="/images/transparent_logo_clean.png">
+    <link rel="icon" href="/images/center_logo_centered.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body class="spin-page">
+
+    <!-- ============ Animated background ============ -->
+    <div class="bg" aria-hidden="true">
+        <div class="bg__glow"></div>
+        <div class="waves">
+            <svg class="wave wave--back" viewBox="0 0 2880 200" preserveAspectRatio="none">
+                <path d="M0,60 C120,20 240,100 360,60 C480,20 600,100 720,60 C840,20 960,100 1080,60 C1200,20 1320,100 1440,60 C1560,20 1680,100 1800,60 C1920,20 2040,100 2160,60 C2280,20 2400,100 2520,60 C2640,20 2760,100 2880,60 L2880,200 L0,200 Z"/>
+            </svg>
+            <svg class="wave wave--mid" viewBox="0 0 2880 200" preserveAspectRatio="none">
+                <path d="M0,60 C120,20 240,100 360,60 C480,20 600,100 720,60 C840,20 960,100 1080,60 C1200,20 1320,100 1440,60 C1560,20 1680,100 1800,60 C1920,20 2040,100 2160,60 C2280,20 2400,100 2520,60 C2640,20 2760,100 2880,60 L2880,200 L0,200 Z"/>
+            </svg>
+            <svg class="wave wave--front" viewBox="0 0 2880 200" preserveAspectRatio="none">
+                <path d="M0,60 C120,20 240,100 360,60 C480,20 600,100 720,60 C840,20 960,100 1080,60 C1200,20 1320,100 1440,60 C1560,20 1680,100 1800,60 C1920,20 2040,100 2160,60 C2280,20 2400,100 2520,60 C2640,20 2760,100 2880,60 L2880,200 L0,200 Z"/>
+            </svg>
+        </div>
+    </div>
+
+    <!-- ============ Stage ============ -->
+    <div class="stage">
+        <header class="hero">
+            <img src="/images/transparent_logo_clean.png" alt="Country Rolls" class="hero__logo">
+            <h1 class="hero__title">Spin &amp; Win</h1>
+            <p class="hero__sub">One free spin. Four prizes. Every single spin wins.</p>
+        </header>
+
+        <main class="wheel-stage">
+            <div class="wheel-wrap" id="wheel-wrap">
+                <div class="wheel-glow"></div>
+                <div class="wheel-shadow"></div>
+                <svg class="wheel" id="wheel" viewBox="0 0 400 400" role="img" aria-label="Prize wheel with four prizes"></svg>
+                <div class="hub" id="hub">
+                    <img src="/images/center_logo_centered.png" alt="">
+                </div>
+                <div class="pointer-wrap">
+                    <svg class="pointer" id="pointer" viewBox="0 0 60 56" aria-hidden="true">
+                        <path class="pointer__shape" d="M6 6 L54 6 L30 50 Z"/>
+                        <path class="pointer__inner" d="M18 15 L42 15 L30 37 Z"/>
+                    </svg>
+                </div>
+            </div>
+
+            <button id="spin-btn" class="btn btn--spin" type="button">
+                <span class="btn__label">Spin Now</span>
+            </button>
+            <p class="hint" id="hint">or flick the wheel to spin</p>
+        </main>
+    </div>
+
+    <p class="sr-only" role="status" aria-live="polite" id="live-region"></p>
+
+    <!-- ============ Registration ============ -->
+    <div id="registration-overlay" class="overlay overlay--brand active" role="dialog" aria-modal="true" aria-labelledby="reg-title">
+        <div class="card">
+            <img src="/images/transparent_logo_clean.png" alt="Country Rolls" class="card__logo">
+            <h2 class="card__title" id="reg-title">Register to Spin</h2>
+            <p class="card__lead">Drop your details and your free spin unlocks instantly.</p>
+
+            <form id="registration-form" novalidate>
+                <div class="field">
+                    <input type="text" id="user-name" name="name" placeholder=" " autocomplete="name" required>
+                    <label for="user-name">Full name</label>
+                    <p class="field__error" id="name-error" role="alert"></p>
+                </div>
+                <div class="field field--phone">
+                    <input type="tel" id="user-phone" name="phone" placeholder=" " inputmode="numeric" autocomplete="tel" maxlength="10" required>
+                    <label for="user-phone">Phone number</label>
+                    <span class="field__prefix">+91</span>
+                    <p class="field__error" id="phone-error" role="alert"></p>
+                </div>
+                <button type="submit" class="btn btn--block" id="register-btn">
+                    <span class="btn__label">Let's Go</span>
+                </button>
+            </form>
+            <p class="card__fine">We only use this to verify your coupon at the counter.</p>
+        </div>
+    </div>
+
+    <!-- ============ Winner ============ -->
+    <div id="winner-modal" class="overlay" role="dialog" aria-modal="true" aria-labelledby="win-title">
+        <div class="card">
+            <p class="card__eyebrow" id="win-eyebrow">You won</p>
+            <h2 class="card__title card__title--prize" id="win-title">Free Aloo Roll</h2>
+            <p class="card__lead" id="win-description">Show this code at the counter to claim.</p>
+
+            <div class="ticket">
+                <span class="ticket__label">Your winning code</span>
+                <div class="ticket__row">
+                    <span class="ticket__code" id="win-code">C001</span>
+                    <button id="copy-btn" class="ticket__copy" type="button">Copy</button>
+                </div>
+            </div>
+
+            <p class="card__fine">*One spin per customer. Cannot be combined with other offers.</p>
+            <button id="close-modal" class="btn btn--block" type="button">
+                <span class="btn__label">Awesome!</span>
+            </button>
+        </div>
+    </div>
+
+
+    <script type="module" src="/script.js"></script>
+</body>
+</html>

@@ -1,0 +1,898 @@
+/* ==========================================================================
+   Country Rolls — Spin & Win
+   Palette is strictly brand yellow + black. Neutrals only for card surfaces.
+   ========================================================================== */
+
+:root {
+  /* Brand */
+  --yellow: #ffc72c;
+  --yellow-deep: #e9ac08;
+  --yellow-soft: #ffdd7a;
+  --yellow-pale: #fff1cb;
+  --black: #111111;
+  --ink: #000000;
+  --white: #ffffff;
+
+  /* Surfaces */
+  --surface: #ffffff;
+  --surface-muted: #f6f6f4;
+  --hairline: rgba(17, 17, 17, 0.12);
+
+  /* Type */
+  --font-display: "Bricolage Grotesque", "Trebuchet MS", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, sans-serif;
+
+  /* Elevation — warm, tinted shadows read richer than neutral grey */
+  --e1: 0 2px 6px rgba(17, 17, 17, 0.08);
+  --e2: 0 10px 24px rgba(17, 17, 17, 0.14);
+  --e3: 0 24px 60px rgba(17, 17, 17, 0.28);
+
+  /* Geometry */
+  /* Width AND height constrained, so the wheel can never overflow a phone
+       screen or push the CTA below the fold. One rule, no breakpoints. */
+  --wheel-size: min(84vw, 46dvh, 420px);
+  --radius-lg: 28px;
+  --radius-md: 16px;
+  --radius-sm: 10px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* overflow-x on <body> alone does not stop the document element growing, so
+   decorative bleed (glows, waves) would still pan the page sideways. */
+html {
+  -webkit-text-size-adjust: 100%;
+  overflow-x: hidden;
+}
+
+body.spin-page {
+  font-family: var(--font-body);
+  color: var(--black);
+  background: var(--yellow);
+  min-height: 100dvh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ==========================================================================
+   Background — light pool + layered waves + grain
+   Everything here is decorative and sits behind a stacking context, so it can
+   never reduce typographic contrast.
+   ========================================================================== */
+
+.bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  /* The wave layer is 200% wide and the glow is 130vw; without clipping
+       they extend the scroll width and the page pans sideways on a phone. */
+  overflow: hidden;
+  background: radial-gradient(
+    120% 80% at 50% -10%,
+    var(--yellow-pale) 0%,
+    var(--yellow) 55%,
+    var(--yellow-deep) 130%
+  );
+}
+
+.bg__glow {
+  position: absolute;
+  top: clamp(60px, 18vh, 200px);
+  left: 50%;
+  width: min(760px, 130vw);
+  aspect-ratio: 1;
+  transform: translate(-50%, -30%);
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.55) 0%,
+    rgba(255, 255, 255, 0) 62%
+  );
+  filter: blur(4px);
+}
+
+.waves {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: clamp(180px, 34vh, 380px);
+}
+
+.wave {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 200%;
+  height: 100%;
+  will-change: transform;
+}
+
+.wave path {
+  fill: currentColor;
+}
+
+.wave--back {
+  color: var(--yellow-soft);
+  opacity: 0.55;
+  height: 70%;
+}
+.wave--mid {
+  color: var(--yellow-deep);
+  opacity: 0.38;
+  height: 85%;
+}
+.wave--front {
+  color: var(--black);
+  opacity: 0.07;
+  height: 100%;
+}
+
+/* ==========================================================================
+   Stage
+   ========================================================================== */
+
+.stage {
+  position: relative;
+  z-index: 1;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(18px, 3.5vh, 40px);
+  padding: clamp(20px, 4vh, 44px) 20px
+    calc(clamp(28px, 6vh, 60px) + env(safe-area-inset-bottom));
+}
+
+/* ---------- Hero ---------- */
+
+.hero {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(6px, 1.4vh, 14px);
+}
+
+/* The Country Rolls lockup is the client's artwork — never restyled, only
+   scaled. It is the hero element on the page. */
+.hero__logo {
+  width: clamp(290px, 84vw, 470px);
+  height: auto;
+  filter: drop-shadow(0 10px 22px rgba(17, 17, 17, 0.22));
+}
+
+@media (max-width: 640px) {
+  .hero__logo {
+    width: clamp(380px, 120vw, 640px);
+  }
+}
+
+.hero__title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(2.1rem, 9.5vw, 3.4rem);
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
+.hero__sub {
+  font-size: clamp(0.9rem, 3.4vw, 1.06rem);
+  font-weight: 500;
+  color: rgba(17, 17, 17, 0.74);
+  max-width: 34ch;
+  line-height: 1.45;
+}
+
+/* Flex children default to flex-shrink:1. When the stage is taller than the
+   viewport they compress below their content height and the text visually
+   collides with the button below it — this is what made "One spin per
+   customer" sit on top of the Spin Used button. */
+.stage > *,
+.wheel-stage > * {
+  flex-shrink: 0;
+}
+
+/* ==========================================================================
+   Wheel
+   ========================================================================== */
+
+.wheel-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(16px, 3vh, 28px);
+}
+
+.wheel-wrap {
+  position: relative;
+  width: var(--wheel-size);
+  height: var(--wheel-size);
+  display: grid;
+  place-items: center;
+  touch-action: none;
+}
+
+.wheel-glow {
+  position: absolute;
+  inset: -7%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.5) 0%,
+    rgba(255, 255, 255, 0) 64%
+  );
+  pointer-events: none;
+}
+
+.wheel {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  cursor: grab;
+  /* No filter here: a drop-shadow on a transforming element repaints every
+       frame. The static .wheel-shadow layer below does the same job free. */
+  will-change: transform;
+}
+
+.wheel:active {
+  cursor: grabbing;
+}
+
+/* Hub sits in the wrapper, not the wheel, so it never rotates. Grid centring
+   guarantees it is pixel-exact regardless of wheel size. */
+.hub {
+  position: relative;
+  z-index: 4;
+  width: 27%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--yellow);
+  border: 5px solid var(--black);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  box-shadow:
+    0 8px 18px rgba(17, 17, 17, 0.35),
+    inset 0 -4px 10px rgba(17, 17, 17, 0.18);
+  pointer-events: none;
+}
+
+.hub img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* Static shadow disc — sits under the wheel and never re-renders. */
+.wheel-shadow {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  box-shadow: 0 22px 40px rgba(17, 17, 17, 0.34);
+  pointer-events: none;
+}
+
+/* Wrapper owns the positioning; the inner SVG owns the rotation, so GSAP can
+   never clobber the centring translate. */
+.pointer-wrap {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 15%;
+  /* Seated so the flat top edge sits just above the rim and the tip bites
+       into the slices without reaching the labels. */
+  transform: translate(-50%, -35%);
+  z-index: 6;
+  pointer-events: none;
+}
+
+.pointer {
+  display: block;
+  width: 100%;
+  height: auto;
+  transform-origin: 50% 20%;
+  filter: drop-shadow(0 5px 9px rgba(17, 17, 17, 0.5));
+}
+
+.pointer__shape {
+  fill: var(--black);
+  stroke: var(--black);
+  stroke-width: 9;
+  stroke-linejoin: round;
+}
+
+.pointer__inner {
+  fill: var(--yellow);
+}
+
+/* Slices */
+.slice-shape {
+  stroke: var(--black);
+  stroke-width: 2;
+}
+.slice-shape.is-dark {
+  fill: var(--black);
+}
+.slice-shape.is-light {
+  fill: var(--yellow);
+}
+
+.slice-label {
+  font-family: var(--font-display);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  font-size: 15px;
+  pointer-events: none;
+}
+.slice-label.on-dark {
+  fill: var(--yellow);
+}
+.slice-label.on-light {
+  fill: var(--black);
+}
+
+.wheel-rim {
+  fill: none;
+  stroke: var(--black);
+  stroke-width: 16;
+}
+
+.wheel-rim-inner {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.18);
+  stroke-width: 2;
+}
+
+.bulb {
+  fill: var(--yellow);
+  stroke: rgba(17, 17, 17, 0.55);
+  stroke-width: 1.5;
+}
+
+.bulb.is-lit {
+  fill: var(--white);
+  filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.95));
+}
+
+/* ==========================================================================
+   Buttons
+   ========================================================================== */
+
+.btn {
+  position: relative;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(1.02rem, 3.9vw, 1.22rem);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--yellow);
+  background: var(--black);
+  border: none;
+  border-radius: 100px;
+  padding: clamp(14px, 2vh, 18px) clamp(34px, 8vw, 52px);
+  cursor: pointer;
+  overflow: hidden;
+  box-shadow:
+    0 12px 26px rgba(17, 17, 17, 0.32),
+    inset 0 -3px 0 rgba(0, 0, 0, 0.45);
+  transition:
+    transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.18s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Sheen sweep — pure yellow/black, no third hue. Animates transform only:
+   sweeping `left` would force layout on every frame of an infinite loop. */
+.btn::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 45%;
+  height: 100%;
+  background: linear-gradient(
+    100deg,
+    transparent,
+    rgba(255, 199, 44, 0.38),
+    transparent
+  );
+  transform: translateX(-160%) skewX(-18deg);
+  animation: sheen 3.6s ease-in-out infinite;
+  will-change: transform;
+}
+
+@keyframes sheen {
+  0%,
+  62% {
+    transform: translateX(-160%) skewX(-18deg);
+  }
+  100% {
+    transform: translateX(320%) skewX(-18deg);
+  }
+}
+
+.btn__label {
+  position: relative;
+  z-index: 1;
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow:
+    0 18px 34px rgba(17, 17, 17, 0.38),
+    inset 0 -3px 0 rgba(0, 0, 0, 0.45);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(1px) scale(0.98);
+}
+
+.btn:focus-visible {
+  outline: 3px solid var(--black);
+  outline-offset: 4px;
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  box-shadow: 0 6px 14px rgba(17, 17, 17, 0.22);
+}
+
+.btn:disabled::after {
+  animation: none;
+  opacity: 0;
+}
+
+.btn--block {
+  width: 100%;
+  margin-top: 22px;
+}
+
+.btn--spin {
+  padding-inline: clamp(46px, 12vw, 68px);
+}
+
+.btn.is-busy .btn__label {
+  opacity: 0.45;
+}
+
+.btn.is-busy::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 2.5px solid rgba(255, 199, 44, 0.3);
+  border-top-color: var(--yellow);
+  border-radius: 50%;
+  animation: spin360 0.7s linear infinite;
+  z-index: 2;
+}
+
+@keyframes spin360 {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.hint {
+  /* Own line box with guaranteed clearance from the CTA above it. */
+  margin-top: 2px;
+  min-height: 1.2em;
+  line-height: 1.2;
+  text-align: center;
+  font-size: clamp(0.72rem, 2.9vw, 0.82rem);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(17, 17, 17, 0.72);
+}
+
+/* ==========================================================================
+   Overlays & cards
+   ========================================================================== */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  /* The OVERLAY scrolls, not the card. If the card were the scroll box its
+       absolutely-positioned cap bar would scroll out of view on short
+       viewports, and long cards would clip instead of centring. */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 20px;
+  background: rgba(17, 17, 17, 0.62);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.35s ease,
+    visibility 0.35s;
+}
+
+.overlay--brand {
+  background: rgba(255, 199, 44, 0.82);
+  z-index: 200;
+}
+
+.overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.card {
+  position: relative;
+  width: min(430px, 100%);
+  margin: auto;
+  flex: 0 0 auto;
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: clamp(26px, 6vw, 40px);
+  text-align: center;
+  box-shadow:
+    var(--e3),
+    0 0 0 1px var(--hairline);
+  transform: translateY(24px) scale(0.94);
+  opacity: 0;
+}
+
+.overlay.active .card {
+  transform: none;
+  opacity: 1;
+}
+
+/* Brand cap bar. On the yellow registration overlay a yellow bar vanishes
+   into the backdrop and reads as a notch cut out of the card, so it flips to
+   black there. */
+.card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: var(--yellow);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.overlay--brand .card::before {
+  background: var(--black);
+}
+
+.card__logo {
+  width: clamp(170px, 46vw, 230px);
+  height: auto;
+  margin-bottom: 6px;
+}
+
+.card__eyebrow {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(17, 17, 17, 0.66);
+  margin-bottom: 6px;
+}
+
+.card__title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(1.5rem, 6vw, 2rem);
+  line-height: 1.06;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  /* Guard rail: a future single-word prize name must wrap, not overflow. */
+  overflow-wrap: anywhere;
+}
+
+.card__title--prize {
+  font-size: clamp(1.75rem, 7.4vw, 2.5rem);
+  color: var(--black);
+  background: linear-gradient(transparent 62%, var(--yellow) 62%);
+  display: inline;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  padding: 0 4px;
+}
+
+.card__lead {
+  margin-top: 12px;
+  font-size: clamp(0.9rem, 3.5vw, 1rem);
+  line-height: 1.5;
+  color: rgba(17, 17, 17, 0.68);
+}
+
+.card__fine {
+  margin-top: 16px;
+  font-size: 0.72rem;
+  line-height: 1.5;
+  color: rgba(17, 17, 17, 0.64);
+}
+
+/* ---------- Ticket ---------- */
+
+.ticket {
+  position: relative;
+  margin-top: 24px;
+  padding: 18px 20px 16px;
+  background: var(--surface-muted);
+  border: 2px dashed var(--black);
+  border-radius: var(--radius-md);
+}
+
+/* Perforation notches */
+.ticket::before,
+.ticket::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 22px;
+  height: 22px;
+  background: var(--surface);
+  border-radius: 50%;
+  transform: translateY(-50%);
+}
+.ticket::before {
+  left: -13px;
+}
+.ticket::after {
+  right: -13px;
+}
+
+.ticket__label {
+  display: block;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(17, 17, 17, 0.64);
+  margin-bottom: 10px;
+}
+
+.ticket__row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.ticket__code {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: clamp(1.5rem, 6.6vw, 1.95rem);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--black);
+}
+
+.ticket__copy {
+  background: var(--black);
+  color: var(--yellow);
+  border: none;
+  border-radius: 100px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px; /* WCAG 2.5.5 touch target */
+  padding: 9px 20px;
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    background 0.18s ease;
+}
+
+.ticket__copy:hover {
+  transform: translateY(-2px);
+}
+.ticket__copy.is-done {
+  background: var(--yellow-deep);
+  color: var(--black);
+}
+
+/* Without this the browser's native (blue) focus ring appears, breaking the
+   strict yellow/black palette for keyboard users. */
+.ticket__copy:focus-visible {
+  outline: 3px solid var(--yellow-deep);
+  outline-offset: 3px;
+}
+
+/* ==========================================================================
+   Form
+   ========================================================================== */
+
+#registration-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 26px;
+  text-align: left;
+}
+
+.field {
+  position: relative;
+}
+
+.field input {
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--black);
+  background: var(--surface-muted);
+  border: 2px solid transparent;
+  border-radius: var(--radius-md);
+  padding: 27px 16px 11px;
+  outline: none;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.field--phone input {
+  padding-left: 54px;
+}
+
+/* Prefix is vertically centred on the input, and only appears once the field
+   is engaged so it never collides with the resting label. */
+.field__prefix {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1rem;
+  font-weight: 700;
+  color: rgba(17, 17, 17, 0.66);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+
+.field--phone input:focus ~ .field__prefix,
+.field--phone input:not(:placeholder-shown) ~ .field__prefix {
+  opacity: 1;
+}
+
+/* Empty state: the label sits centred like a placeholder, then floats up on
+   focus or once a value exists. */
+.field label {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1rem;
+  font-weight: 500;
+  color: rgba(17, 17, 17, 0.64);
+  pointer-events: none;
+  transform-origin: left center;
+  transition:
+    transform 0.18s ease,
+    color 0.18s ease;
+}
+
+/* Phone label stays at 16px: the +91 prefix only fades in once the field is
+   engaged, by which point the label has floated clear of it. */
+
+.field input:focus + label,
+.field input:not(:placeholder-shown) + label {
+  transform: translateY(calc(-50% - 16px)) scale(0.7);
+  color: rgba(17, 17, 17, 0.58);
+}
+
+.field input:focus {
+  border-color: var(--black);
+  background: var(--white);
+}
+
+/* Errors stay inside the yellow/black system: a solid black rule plus a
+   yellow-highlighted message, which reads louder than red on this palette. */
+.field.has-error input {
+  border-color: var(--black);
+  background: var(--white);
+  box-shadow: 0 0 0 4px rgba(255, 199, 44, 0.55);
+}
+
+.field__error {
+  display: none;
+  width: fit-content;
+  margin-top: 8px;
+  padding: 3px 9px;
+  border-radius: 6px;
+  background: var(--black);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--yellow);
+}
+
+.field.has-error .field__error {
+  display: block;
+}
+
+/* ==========================================================================
+   Motion preferences
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .wave {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   Short viewports — keep everything on one screen, no dead space
+   ========================================================================== */
+
+@media (max-height: 700px) {
+  .hero__logo {
+    width: clamp(320px, 90vw, 480px);
+  }
+  .hero__sub {
+    display: none;
+  }
+  .hero__title {
+    font-size: clamp(1.6rem, 6.5vw, 2.1rem);
+  }
+}
+
+/* Wide desktop: put the hero beside the wheel instead of leaving a tall
+   column of empty yellow. */
+@media (min-width: 1000px) and (min-height: 620px) {
+  .stage {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: clamp(40px, 6vw, 90px);
+  }
+  .hero {
+    text-align: left;
+    align-items: flex-start;
+    max-width: 460px;
+  }
+  .hero__sub {
+    max-width: 30ch;
+  }
+}
