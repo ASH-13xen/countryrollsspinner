@@ -185,7 +185,7 @@ body.spin-page {
     padding-top: calc(clamp(20px, 4vh, 44px) + 4vh);
   }
   .hero__logo {
-    width: clamp(323px, 102vw, 544px);
+    width: clamp(317px, 100vw, 533px);
   }
 }
 
@@ -874,7 +874,7 @@ body.spin-page {
 
 @media (max-height: 700px) {
   .hero__logo {
-    width: clamp(272px, 77vw, 408px);
+    width: clamp(267px, 75vw, 400px);
   }
   .hero__sub {
     display: none;
