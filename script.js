@@ -50,6 +50,7 @@ const winEyebrow = document.getElementById('win-eyebrow');
 const winTitle   = document.getElementById('win-title');
 const winDesc    = document.getElementById('win-description');
 const winCode    = document.getElementById('win-code');
+const winTicket  = document.getElementById('win-ticket');
 const copyBtn    = document.getElementById('copy-btn');
 const closeBtn   = document.getElementById('close-modal');
 
@@ -391,6 +392,7 @@ function finishSpin(prize, result) {
     store('winningCode', result.code);
     store('winningPrize', prize.label);
     store('winningSource', result.source);
+    store('winningExpiresAt', String(result.expiresAt));
 
     recordEntry({
         name: read('userName') || '',
@@ -420,16 +422,25 @@ function fireConfetti() {
     setTimeout(() => confetti({ ...opts, particleCount: 55, angle: 120, spread: 60, origin: { x: 1, y: .65 } }), 260);
 }
 
-function showWinner(prizeLabel, code, returning) {
-    winEyebrow.textContent = returning ? 'Welcome back' : 'You won';
-    winTitle.textContent = prizeLabel;
-    winDesc.textContent = returning
-        ? 'Here is the code you already won.'
-        : 'Show this code at the counter to claim it.';
-    winCode.textContent = code || '—';
-    liveRegion.textContent = `You won ${prizeLabel}. Your code is ${code}.`;
+function showWinner(prizeLabel, code, returning, expired = false) {
+    if (expired) {
+        winEyebrow.textContent = 'Coupon expired';
+        winTitle.textContent = 'This coupon is invalid';
+        winDesc.textContent = 'Your 48-hour claim window has passed, so this code can no longer be redeemed.';
+        winTicket.hidden = true;
+        liveRegion.textContent = 'Your coupon has expired and is no longer valid.';
+    } else {
+        winEyebrow.textContent = returning ? 'Welcome back' : 'You won';
+        winTitle.textContent = prizeLabel;
+        winDesc.textContent = returning
+            ? 'Here is the code you already won.'
+            : 'Show this code at the counter to claim it.';
+        winCode.textContent = code || '—';
+        winTicket.hidden = false;
+        liveRegion.textContent = `You won ${prizeLabel}. Your code is ${code}.`;
+    }
     openOverlay(winModal, closeBtn);
-    if (!returning) fireConfetti();
+    if (!returning && !expired) fireConfetti();
 }
 
 /* ==========================================================================
@@ -523,10 +534,15 @@ function restoreIfSpun() {
     spinBtn.disabled = true;
     spinBtn.querySelector('.btn__label').textContent = 'Spin Used';
     hintEl.textContent = '';
+
+    const expiresAt = Number(read('winningExpiresAt'));
+    const expired = Number.isFinite(expiresAt) && expiresAt > 0 && Date.now() > expiresAt;
+
     setTimeout(() => showWinner(
         read('winningPrize') || 'Your prize',
         read('winningCode') || '—',
-        true
+        true,
+        expired
     ), 500);
 }
 
