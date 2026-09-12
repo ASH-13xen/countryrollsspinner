@@ -11,8 +11,8 @@
  * throwing, so a customer is never left without a prize.
  */
 
-/** Coupon lifetime. Deliberately not surfaced anywhere in the UI. */
-export const VALIDITY_HOURS = 72;
+/** Coupon lifetime, also shown to the customer in the winner modal. */
+export const VALIDITY_HOURS = 48;
 
 const DEFAULT_SHEET_URL =
   'https://script.google.com/macros/s/AKfycbxF2Z5p6GiEag6o8sQJWg8YXHKPhAGa3Mg1O8U2IkkNS-jwNMAwqOJ14xfobtlOGmhC/exec';

@@ -23,8 +23,8 @@
  * (or configure a new version in Manage Deployments) for changes to take effect on the live URL.
  */
 
-/** Coupon lifetime in hours. Never shown to customers. */
-var VALIDITY_HOURS = 72;
+/** Coupon lifetime in hours, also shown to the customer in the winner modal. */
+var VALIDITY_HOURS = 48;
 
 /**
  * Health check.
